@@ -1,5 +1,3 @@
-const canvas = document.querySelector('canvas')
-canvas.width = window.innerWidth;
 var positionH = 50;
 var positionV = 85;
 var moveX = 0;
@@ -119,7 +117,7 @@ function shoot() {
 	shot.classList.add("shot")
 	shot.src="Shot.png"
 	shot.style.left = positionH + 1 + '%';
-	shot.style.top = positionV + 1 + "%"
+	shot.style.top = positionV + 1 + "%";
 	document.body.appendChild(shot);
 	shotSFX.play();
 }
