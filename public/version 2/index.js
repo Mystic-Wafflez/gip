@@ -1,6 +1,7 @@
 // made using HTML Canvas API
-// TODO: pretty titlescreen, targets & hitreg, DB connection, netcode
-// DONE: player, full 360 movement, shooting, shot culling
+// TODO: pretty titlescreen, DB connection, netcode (multiplayer)
+// NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
+// DONE: player, full 360 movement, shooting, shot culling, targets, hitreg
 // basic canvas setup
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d') 
@@ -61,6 +62,26 @@ class Shot {
 		this.position.y += this.velocity.y
 	}
 }
+class Target {
+	constructor({position,velocity, radius}) {
+		this.position = position
+		this.velocity = velocity
+		this.radius = radius
+		this.tickTimer = 2400 // longer lifetime bc you dont want your targets to randomly disappear while they're still onscreen
+	}
+	draw(){
+		context.beginPath()
+		context.arc(this.position.x,this.position.y,this.radius,0,Math.PI*2,false)
+		context.closePath()
+		context.strokeStyle = '#39FF14'
+		context.stroke()
+	}
+	update(){
+		this.draw()
+		this.position.x += this.velocity.x
+		this.position.y += this.velocity.y
+	}
+}
 // player
 const player = new Player({
 	position: {x: canvas.width / 2 - 50, y: canvas.height / 2 - 50},
@@ -68,7 +89,7 @@ const player = new Player({
 })
 
 const shots = []
-
+const targets = []
 // functions
 // constant variable keeps track of which keys are pressed
 const keys = {
@@ -86,6 +107,69 @@ const keys = {
 const PlayerSpeed = 2.5
 const PlayerRotation = 0.015
 const ShotSpeed = 3.5
+// creates targets every X milliseconds
+window.setInterval(() => {
+	const index =  Math.floor(Math.random() * 4)
+	let x, y
+	let radius = 50 * Math.random() + 10
+	let velX, velY
+	switch (index) {
+		case 0:  // left?
+		x = 0 - radius
+		y = Math.random() * canvas.height
+		velX = 1
+		velY = 0
+		break
+	case 1:  // bottom?
+		x = Math.random() * canvas.width
+		y = canvas.height + radius
+		velX = 0
+		velY = -1
+		break
+	case 2:  // right?
+		x = canvas.width + radius
+		y = Math.random() * canvas.height
+		velX = -1 
+		velY = 0
+		break
+	case 3:  // top?
+		x = Math.random() * canvas.width
+		y = 0 - radius
+		velX = 0
+		velY = 1
+		break
+	}
+	targets.push(
+		new Target({
+			position: {
+				x: x, 
+				y: y
+			},
+			velocity: {
+				x: velX, 
+				y: velY
+			},
+			radius
+		})
+	)
+// determines timer (in ms)
+},3000)
+
+function hitReg(circle1, circle2) {
+	// get distance between x & y positions of both circles
+	const xDiff  = circle2.position.x - circle1.position.x
+	const yDiff = circle2.position.y - circle1.position.y
+	// Square root of xDiff² + yDiff²
+	const distance = Math.sqrt(xDiff * xDiff + yDiff * yDiff)
+	// check if touching
+	if (distance <= circle1.radius + circle2.radius ){
+		console.log('hit')
+		return true
+		
+	}
+	return false
+}
+
 // calls update, creates animation loop
 function animation() {
 	// clear the canvas every frame
@@ -104,8 +188,27 @@ function animation() {
 		if (shot.tickTimer < 0) {
 			shots.splice(i,1)
 		} // culls shots after 60 frames
-		
 	}
+	// target rendering? also loops backwards yadda yadda
+	for (let i = targets.length - 1; i >= 0; i--){
+		const target = targets[i]
+		target.tickTimer -= 1
+		target.update()
+		//shots
+			for (let i = shots.length - 1; i >= 0; i--) {
+			const shot = shots[i]
+			
+			if (hitReg(target, shot)) {
+				shots.splice(i,1)
+				console.log('HIT')
+				targets.splice(i,1)
+			}
+			}
+		if (target.tickTimer < 0) {
+			targets.splice(i,1)
+		}
+	} // cull targets after longer time has passed bc resources
+	
 	// resets velocity
 	player.velocity.x = 0;
 	player.velocity.y = 0;
