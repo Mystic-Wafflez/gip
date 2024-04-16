@@ -92,7 +92,7 @@ const player2 = new Player({
 	position: {x: canvas.width / 2 + 500, y: canvas.height / 2 - 50},
 	velocity: {x: 0, y: 0},
 })
-
+player2.rotation = 3.15
 
 
 const shots = []
@@ -209,8 +209,8 @@ function animation() {
 		} // culls shots after 60 frames
 	}
 	// target rendering? also loops backwards yadda yadda
-	for (let i = targets.length - 1; i >= 0; i--){
-		const target = targets[i]
+	for (let h = targets.length - 1; h >= 0; h--){
+		const target = targets[h]
 		target.tickTimer -= 1
 		target.update()
 		//shots
@@ -220,17 +220,17 @@ function animation() {
 			if (hitReg(target, shot)) {
 				shots.splice(i,1)
 				console.log('HIT')
-				targets.splice(i,1)
+				targets.splice(h,1)
 			}
 			}
 		
 		// player 2
-			for (let i = shots2.length - 1; i >= 0; i--) {
-		const shot2 =  shots2[i]
+		for (let j = shots2.length - 1; j >= 0; j--) {
+		const shot2 =  shots2[j]
 		shot2.tickTimer -= 1
 		shot2.update()
 		if (shot2.tickTimer < 0) {
-			shots2.splice(i,1)
+			shots2.splice(j,1)
 		} // culls shots after 60 frames
 	}
 		
@@ -238,13 +238,13 @@ function animation() {
 			const shot = shots2[i]
 			
 			if (hitReg(target, shot)) {
-				shots2.splice(i,1)
+				shots2.splice(j,1)
 				console.log('HIT')
-				targets.splice(i,1)
+				targets.splice(h,1)
 			}
 			}
 		if (target.tickTimer < 0) {
-			targets.splice(i,1)
+			targets.splice(h,1)
 		}
 	} // cull targets after longer time has passed bc resources
 	
