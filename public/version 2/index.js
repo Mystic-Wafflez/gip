@@ -1,5 +1,5 @@
 // made using HTML Canvas API
-// TODO: pretty titlescreen, DB connection, netcode (multiplayer)
+// TODO: pretty titlescreen, DB connection, 2nd player, netcode (websocket), better target splicing
 // NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
 // DONE: player, full 360 movement, shooting, shot culling, targets, hitreg
 // basic canvas setup
@@ -42,6 +42,7 @@ class Player {
 		this.position.y += this.velocity.y
 	}
 }
+
 class Shot {
 	constructor ({position,velocity}) {
 		this.position = position
@@ -84,11 +85,18 @@ class Target {
 }
 // player
 const player = new Player({
-	position: {x: canvas.width / 2 - 50, y: canvas.height / 2 - 50},
+	position: {x: canvas.width / 2 - 500, y: canvas.height / 2 - 50},
+	velocity: {x: 0, y: 0},
+})
+const player2 = new Player({
+	position: {x: canvas.width / 2 + 500, y: canvas.height / 2 - 50},
 	velocity: {x: 0, y: 0},
 })
 
+
+
 const shots = []
+const shots2 = []
 const targets = []
 // functions
 // constant variable keeps track of which keys are pressed
@@ -100,6 +108,15 @@ const keys = {
 		pressed: false
 	},
 	d: {
+		pressed: false
+	},
+	arrowup : {
+		pressed: false
+	},
+	arrowleft: {
+		pressed: false
+	},
+	arrowright: {
 		pressed: false
 	}
 }
@@ -155,6 +172,7 @@ window.setInterval(() => {
 // determines timer (in ms)
 },3000)
 
+// pythagorean theorem:
 function hitReg(circle1, circle2) {
 	// get distance between x & y positions of both circles
 	const xDiff  = circle2.position.x - circle1.position.x
@@ -180,6 +198,7 @@ function animation() {
 	// starts loop
 	window.requestAnimationFrame(animation)
 	player.update()
+	player2.update()
 	// loops backwards through shots array every frame
 	for (let i = shots.length - 1; i >= 0; i--) {
 		const shot =  shots[i]
@@ -204,6 +223,26 @@ function animation() {
 				targets.splice(i,1)
 			}
 			}
+		
+		// player 2
+			for (let i = shots2.length - 1; i >= 0; i--) {
+		const shot2 =  shots2[i]
+		shot2.tickTimer -= 1
+		shot2.update()
+		if (shot2.tickTimer < 0) {
+			shots2.splice(i,1)
+		} // culls shots after 60 frames
+	}
+		
+			for (let i = shots2.length - 1; i >= 0; i--) {
+			const shot = shots2[i]
+			
+			if (hitReg(target, shot)) {
+				shots2.splice(i,1)
+				console.log('HIT')
+				targets.splice(i,1)
+			}
+			}
 		if (target.tickTimer < 0) {
 			targets.splice(i,1)
 		}
@@ -212,6 +251,10 @@ function animation() {
 	// resets velocity
 	player.velocity.x = 0;
 	player.velocity.y = 0;
+	
+	player2.velocity.x = 0;
+	player2.velocity.y = 0;
+	
 	Shot.tickTimer -= 1; // should subtract 1 for every 'frame'
 	// determines speed when key is pressed
 	if (keys.w.pressed) {
@@ -222,7 +265,15 @@ function animation() {
 	if (keys.d.pressed) player.rotation += PlayerRotation
 	// rotates left
 		else if (keys.a.pressed) player.rotation -= PlayerRotation
+		// player 2
+if (keys.arrowup.pressed) {
+	player2.velocity.x = Math.cos(player2.rotation) * PlayerSpeed
+	player2.velocity.y = Math.sin(player2.rotation) * PlayerSpeed
 }
+if (keys.arrowright.pressed) player2.rotation += PlayerRotation
+else if (keys.arrowleft.pressed) player2.rotation -= PlayerRotation
+}
+
 animation();
 
 window.addEventListener('keydown', (event) => {
@@ -267,8 +318,51 @@ window.addEventListener('keydown', (event) => {
 	}))
 			console.log('Spacebar input')
 			break
+			
+			// player 2 inputs
+		case 'ArrowUp':
+			keys.arrowup.pressed = true
+			console.log('up arrow input')
+		break
+		
+		case 'ArrowRight':
+			keys.arrowright.pressed = true
+			console.log('right arrow input')
+		break
+		
+		case 'ArrowLeft':
+			keys.arrowleft.pressed = true
+			console.log('left arrow input')
+		break
+			case 'NumpadEnter':
+			const playerWidth2 = 100
+			const playerHeight2 =  100	
+				
+			const tipOffsetX2 = playerWidth2 / 2; 
+			const xOffset2 = Math.cos(player2.rotation) * tipOffsetX2;
+			const yOffset2 = Math.sin(player2.rotation) * tipOffsetX2;
+			// Adjust the shot's position based on the offset
+			const shotX2 = player2.position.x + playerWidth2 / 2 + xOffset2;
+			const shotY2 = player2.position.y + playerHeight2 / 2 + yOffset2;
+			
+			
+			shots2.push(new Shot({
+			position: {
+				x: shotX2,
+				y: shotY2,
+			},
+			velocity: {
+				x: Math.cos(player2.rotation) * ShotSpeed,
+				y: Math.sin(player2.rotation) * ShotSpeed
+			}
+			
+	}))
+	console.log('right enter input')
+	break
 	}
 })
+
+
 // keyup stops input after letting go
 window.addEventListener('keyup', (event) => {
 	switch(event.code) {
@@ -280,6 +374,17 @@ window.addEventListener('keyup', (event) => {
 			break
 		case 'KeyD':
 			keys.d.pressed = false
+			break
+			
+			// player 2 keyup
+		case 'ArrowUp': 
+			keys.arrowup.pressed = false
+			break
+		case 'ArrowRight': 
+			keys.arrowright.pressed = false
+			break
+		case 'ArrowLeft': 
+			keys.arrowleft.pressed = false
 			break
 	}
 })
