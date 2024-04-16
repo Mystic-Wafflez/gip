@@ -1,7 +1,8 @@
 // made using HTML Canvas API
 // TODO: pretty titlescreen, DB connection, netcode (springboot websocket)
-// NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
 // DONE: player, full 360 movement, shooting, shot culling, targets, hitreg, 2nd player
+
+// NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
 // basic canvas setup
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d') 
@@ -123,7 +124,6 @@ const keys = {
 // speed values
 const PlayerSpeed = 2.5
 const PlayerRotation = 0.015
-const ShotSpeed = 3.5
 // creates targets every X milliseconds
 window.setInterval(() => {
 	const index =  Math.floor(Math.random() * 4)
@@ -208,6 +208,15 @@ function animation() {
 			shots.splice(i,1)
 		} // culls shots after 60 frames
 	}
+		// player 2 shots array loop
+		for (let j = shots2.length - 1; j >= 0; j--) {
+		const shot2 =  shots2[j]
+		shot2.tickTimer -= 1
+		shot2.update()
+		if (shot2.tickTimer < 0) {
+			shots2.splice(j,1)
+		} // culls shots after 60 frames
+	}
 	// target rendering? also loops backwards yadda yadda
 	for (let h = targets.length - 1; h >= 0; h--){
 		const target = targets[h]
@@ -224,18 +233,9 @@ function animation() {
 			}
 			}
 		
-		// player 2
-		for (let j = shots2.length - 1; j >= 0; j--) {
-		const shot2 =  shots2[j]
-		shot2.tickTimer -= 1
-		shot2.update()
-		if (shot2.tickTimer < 0) {
-			shots2.splice(j,1)
-		} // culls shots after 60 frames
-	}
 		
-			for (let i = shots2.length - 1; i >= 0; i--) {
-			const shot = shots2[i]
+			for (let j = shots2.length - 1; j >= 0; j--) {
+			const shot = shots2[j]
 			
 			if (hitReg(target, shot)) {
 				shots2.splice(j,1)
@@ -292,6 +292,7 @@ window.addEventListener('keydown', (event) => {
 			console.log('D input');
 			break
 		case 'Space':
+			const ShotSpeedPlayer1 = 3.5
 			// defines player dimensions bc.. reasons
 			const playerWidth = 100
 			const playerHeight =  100
@@ -311,11 +312,14 @@ window.addEventListener('keydown', (event) => {
 				y: shotY,
 			},
 			velocity: {
-				x: Math.cos(player.rotation) * ShotSpeed,
-				y: Math.sin(player.rotation) * ShotSpeed
+				x: Math.cos(player.rotation) * ShotSpeedPlayer1,
+				y: Math.sin(player.rotation) * ShotSpeedPlayer1
 			}
 			
 	}))
+		// sound effects
+			var shotSFX = new Audio("laser.wav");
+			shotSFX.play();
 			console.log('Spacebar input')
 			break
 			
@@ -335,6 +339,7 @@ window.addEventListener('keydown', (event) => {
 			console.log('left arrow input')
 		break
 			case 'NumpadEnter':
+			const ShotSpeedPlayer2 = 3.5
 			const playerWidth2 = 100
 			const playerHeight2 =  100	
 				
@@ -352,11 +357,15 @@ window.addEventListener('keydown', (event) => {
 				y: shotY2,
 			},
 			velocity: {
-				x: Math.cos(player2.rotation) * ShotSpeed,
-				y: Math.sin(player2.rotation) * ShotSpeed
+				x: Math.cos(player2.rotation) * ShotSpeedPlayer2,
+				y: Math.sin(player2.rotation) * ShotSpeedPlayer2
+				
 			}
 			
 	}))
+	// sound effects
+	var shotSFX = new Audio("laser.wav");
+	shotSFX.play();
 	console.log('right enter input')
 	break
 	}
