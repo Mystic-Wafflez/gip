@@ -1,7 +1,7 @@
 // made using HTML Canvas API
-// TODO: pretty titlescreen, DB connection, 2nd player, netcode (websocket), better target splicing
+// TODO: pretty titlescreen, DB connection, netcode (springboot websocket)
 // NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
-// DONE: player, full 360 movement, shooting, shot culling, targets, hitreg
+// DONE: player, full 360 movement, shooting, shot culling, targets, hitreg, 2nd player
 // basic canvas setup
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d') 
