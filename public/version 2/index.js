@@ -10,6 +10,16 @@ const context = canvas.getContext('2d')
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+document.addEventListener('keydown', playAudio)
+
+function playAudio() {
+	const audio = document.querySelector("audio")
+	audio.volume = 0.2 
+	audio.play()
+	if (audio.paused) {
+		audio.play()
+	}
+}
 // player class + constructor
 class Player {
 	constructor({position, velocity,shieldRadius}) {
