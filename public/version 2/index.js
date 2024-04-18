@@ -10,7 +10,6 @@ const context = canvas.getContext('2d')
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-
 // player class + constructor
 class Player {
 	constructor({position, velocity,shieldRadius}) {
@@ -212,10 +211,32 @@ function animation() {
 	// text stuff
 	// tells obj FontFace to load the font file, font gets passed as param, of function, gets added to document fonts
 	
-	
+	// make stuff happen when the player destroys X amount of targets
 	context.font = '30px CustomFont'
-	context.fillStyle = '#39FF14'
+	if (player.targetHits >= 50) {
+    context.fillStyle = 'magenta';
+    context.fillText("Savage!", 10, 80);
+} else if (player.targetHits >= 25) {
+    context.fillStyle = '#FFBF00';
+    context.fillText("Stylish!", 10, 80);
+}
+	 else {
+			context.fillStyle = '#39FF14'
+	}
 	context.fillText("P1 HITS: " + player.targetHits, 10, 50)
+	
+	// player 2 target checks
+	if (player2.targetHits >= 50) {
+    context.fillStyle = 'magenta';
+    context.fillText("Savage!", canvas.width / 2 + 780, 80);
+} else if (player2.targetHits >= 25) {
+    context.fillStyle = '#FFBF00';
+    context.fillText("Stylish!", canvas.width / 2 + 780, 80);
+}
+	 else {
+			context.fillStyle = '#39FF14'
+	}
+	
 	context.fillText("P2 HITS: " + player2.targetHits, canvas.width / 2 + 780, 50)
 	// starts loop
 	window.requestAnimationFrame(animation)
