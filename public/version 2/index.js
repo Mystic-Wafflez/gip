@@ -13,16 +13,16 @@ canvas.height = window.innerHeight;
 
 // player class + constructor
 class Player {
-	constructor({position, velocity}) {
+	constructor({position, velocity,shieldRadius}) {
 		this.position = position; // uses {x,y}
 		this.velocity = velocity; // same deal
 		this.rotation = 0 // starting value
+		this.shieldRadius = shieldRadius
 	}
 	draw(){
 		// player image variables
 		const playerHeight = 100;
 		const playerWidth = 100;
-
 		// loading image
 		const playerImg = new Image()
 		playerImg.src = "./char.png"
@@ -35,6 +35,14 @@ class Player {
 		context.rotate(this.rotation);
 		context.drawImage(playerImg, -playerWidth / 2, -playerHeight / 2, playerWidth, playerHeight);
 		context.restore();
+		
+		// WIP shield drawing
+		//context.strokeStyle = '#39FF14'
+		//context.beginPath()
+		//const shieldRadius = 48
+		//context.arc(this.position.x + playerWidth / 2, this.position.y + playerHeight / 2,shieldRadius,0,Math.PI*2,false)
+		//context.closePath()
+		//context.stroke()
 	}
 	// calls draw, updates position based on velocity
 	update() {
@@ -72,11 +80,14 @@ class Target {
 		this.tickTimer = 2400 // longer lifetime bc you dont want your targets to randomly disappear while they're still onscreen
 	}
 	draw(){
+		context.fillStyle = '#061902'
+		context.strokeStyle = '#39FF14'
 		context.beginPath()
 		context.arc(this.position.x,this.position.y,this.radius,0,Math.PI*2,false)
-		context.closePath()
-		context.strokeStyle = '#39FF14'
+		context.fill()
 		context.stroke()
+		context.lineWidth = '2'
+		context.closePath()
 	}
 	update(){
 		this.draw()
