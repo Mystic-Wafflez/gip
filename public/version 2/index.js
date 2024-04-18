@@ -1,5 +1,5 @@
 // made using HTML Canvas API
-// TODO: pretty titlescreen, DB connection, netcode (springboot websocket)
+// TODO: pretty titlescreen, DB connection, netcode (springboot websocket), player lives(?)
 // DONE: player, full 360 movement, shooting, shot culling, targets, hitreg, 2nd player
 
 // NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
@@ -17,6 +17,7 @@ class Player {
 		this.position = position; // uses {x,y}
 		this.velocity = velocity; // same deal
 		this.rotation = 0 // starting value
+		this.targetHits = 0
 		this.shieldRadius = shieldRadius
 	}
 	draw(){
@@ -198,18 +199,29 @@ function hitReg(circle1, circle2) {
 	}
 	return false
 }
-
 // calls update, creates animation loop
 function animation() {
+	
+	
 	// clear the canvas every frame
 	context.clearRect(0,0, canvas.width,canvas.height)
+	
 	// redraws background every frame
 	context.fillStyle = 'black'
 	context.fillRect(0, 0, canvas.width, canvas.height)
+	// text stuff
+	// tells obj FontFace to load the font file, font gets passed as param, of function, gets added to document fonts
+	
+	
+	context.font = '30px CustomFont'
+	context.fillStyle = '#39FF14'
+	context.fillText("P1 HITS: " + player.targetHits, 10, 50)
+	context.fillText("P2 HITS: " + player2.targetHits, canvas.width / 2 + 780, 50)
 	// starts loop
 	window.requestAnimationFrame(animation)
 	player.update()
 	player2.update()
+	
 	// loops backwards through shots array every frame
 	for (let i = shots.length - 1; i >= 0; i--) {
 		const shot =  shots[i]
@@ -241,6 +253,8 @@ function animation() {
 				shots.splice(i,1)
 				console.log('HIT')
 				targets.splice(h,1)
+				player.targetHits += 1
+				console.log(player.targetHits)
 			}
 			}
 		
@@ -252,6 +266,9 @@ function animation() {
 				shots2.splice(j,1)
 				console.log('HIT')
 				targets.splice(h,1)
+				player2.targetHits += 1
+				console.log(player2.targetHits)
+				
 			}
 			}
 		if (target.tickTimer < 0) {
