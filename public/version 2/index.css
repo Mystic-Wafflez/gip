@@ -1,8 +1,22 @@
 body {
 	margin: 0;
 	overflow: hidden;
+	background-color: black;
 }
 @font-face {
 	font-family: 'CustomFont';
 	src: url('./font.otf') format('opentype');
+}
+#buttonDiv {
+	text-align: center;
+}
+#centerDiv {
+	display: inline-block;
+}
+#startButton {
+	border: none;
+	font-family: CustomFont;
+	font-size: 50px;
+	background-color: black;
+	color: #39FF14;
 }

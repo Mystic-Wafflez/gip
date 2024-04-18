@@ -6,20 +6,42 @@
 // basic canvas setup
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d') 
+
 // sets up canvas size, scalable
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// game start button
+document.addEventListener('DOMContentLoaded', function() {
+    const startButton = document.getElementById('startButton');
+
+    startButton.addEventListener('click', function() {
+        startGame();
+        var startupSFX = new Audio("startupSFX.wav")
+		startupSFX.play()
+    });
+});
+// starts game loop
+function startGame() {
+	gameStarted = true
+	animation();
+	console.log('Holotape Started!')	
+	const startButton = document.getElementById('startButton')
+	startButton.style.display = 'none'
+	const buttonDiv = document.getElementById('buttonDiv')
+	buttonDiv.style.display = 'none'
+}
 document.addEventListener('keydown', playAudio)
 
 function playAudio() {
-	const audio = document.querySelector("audio")
-	audio.volume = 0.2 
-	audio.play()
-	if (audio.paused) {
+	const startupAudio = document.querySelector("audio")
+	startupAudio.volume = 0.2 
+	startupAudio.play()
+	if (startupAudio.paused) {
 		audio.play()
 	}
 }
+
 // player class + constructor
 class Player {
 	constructor({position, velocity,shieldRadius}) {
@@ -145,8 +167,13 @@ const keys = {
 // speed values
 const PlayerSpeed = 2.5
 const PlayerRotation = 0.015
+
+let gameStarted = false
+
 // creates targets every X milliseconds
 window.setInterval(() => {
+	// only creates targets if the game has actually been started
+	if (gameStarted) {
 	const index =  Math.floor(Math.random() * 4)
 	let x, y
 	let radius = 50 * Math.random() + 10
@@ -177,6 +204,7 @@ window.setInterval(() => {
 		velY = 1
 		break
 	}
+
 	targets.push(
 		new Target({
 			position: {
@@ -191,7 +219,7 @@ window.setInterval(() => {
 		})
 	)
 // determines timer (in ms)
-},3000)
+}},3000)
 
 // pythagorean theorem:
 function hitReg(circle1, circle2) {
@@ -203,6 +231,8 @@ function hitReg(circle1, circle2) {
 	// check if touching
 	if (distance <= circle1.radius + circle2.radius ){
 		console.log('hit')
+		var hitSFX = new Audio("hitSFX.wav")
+		hitSFX.play()
 		return true
 		
 	}
@@ -234,6 +264,7 @@ function animation() {
 			context.fillStyle = '#39FF14'
 	}
 	context.fillText("P1 HITS: " + player.targetHits, 10, 50)
+	
 	
 	// player 2 target checks
 	if (player2.targetHits >= 50) {
@@ -333,7 +364,6 @@ if (keys.arrowright.pressed) player2.rotation += PlayerRotation
 else if (keys.arrowleft.pressed) player2.rotation -= PlayerRotation
 }
 
-animation();
 
 window.addEventListener('keydown', (event) => {
 	// switch = cleaner if/else, uses cases. better readability.
