@@ -1,6 +1,6 @@
 // made using HTML Canvas API, STOMP API, SockJS
 // TODO: pretty titlescreen, DB connection, netcode (springboot websocket), player lives(?)
-// DONE: player, full 360 movement, shooting, shot culling, targets, hitreg, 2nd player
+// DONE: player, full 360 movement, shooting, shot culling, targets, hitreg, 2nd player, springboot server
 
 // NOTE: circular hitreg uses Pythagorean theorem (maybe i DO have a use for it in life after all?)
 // basic canvas setup
@@ -14,12 +14,15 @@ canvas.height = window.innerHeight;
 // game start button
 document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('startButton');
-
+	const startConnection = document.getElementById('startConnection')
     startButton.addEventListener('click', function() {
         startGame();
         var startupSFX = new Audio("startupSFX.wav")
 		startupSFX.play()
     });
+	startConnection.addEventListener('click', function() {
+		connectSocket();
+	})
 });
 // starts game loop
 function startGame() {
@@ -488,21 +491,20 @@ window.addEventListener('keyup', (event) => {
 })
 
 // networking! (send help)
-
- var sock = new SockJS('http:localhost:8080/websocket');
- sock.onopen = function() {
-     console.log('open');
-     sock.send('test');
- };
-
- sock.onmessage = function(e) {
-     console.log('message', e.data);
-     sock.close();
- };
-
- sock.onclose = function() {
-     console.log('close');
- };
-
-
-
+function connectSocket() {
+}
+	// create instance & connect to server
+var socket = new SockJS('/websocket', {
+	transports: ['websocket'] // force websockets only?
+});
+//handler for connection open
+	socket.onopen = function() {
+	console.log('SockJS connection established. ');
+	}
+	// handler for message received
+	socket.onmessage = function(e) {
+		console.log('Message received from server: ', e.data);
+	}
+	socket.onclose = function() {
+		console.log('SockJS connection closed. ')
+	}
