@@ -7,6 +7,37 @@
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d') 
 
+const socket = new WebSocket('ws://localhost:8081/websocket')
+
+socket.onopen = function (event){
+	console.log('connected to websocket')
+}
+
+socket.onmessage = function (event) {
+	console.log('Received from socket: ' + event.data)
+}
+
+socket.onclose = function (event){	console.log('closed socket')
+}
+
+function sendmessage(msg){
+	socket.send(msg)
+	console.log('socket sent: ' + msg)
+}
+
+
+function onclicksendmessage(){
+	console.log('sending message')
+	sendmessage('test test test')
+}
+function sendPlayerPositionUpdate(position) {
+    const message = {
+        type: 'player_position_update',
+        data: position
+    };
+    socket.send(JSON.stringify(message));
+}
+
 // sets up canvas size, scalable
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -14,16 +45,12 @@ canvas.height = window.innerHeight;
 // game start button
 document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('startButton');
-	const startConnection = document.getElementById('startConnection')
     startButton.addEventListener('click', function() {
         startGame();
         var startupSFX = new Audio("startupSFX.wav")
 		startupSFX.play()
     });
-	startConnection.addEventListener('click', function() {
-		connectSocket();
 	})
-});
 // starts game loop
 function startGame() {
 	gameStarted = true
@@ -44,6 +71,9 @@ function playAudio() {
 		audio.play()
 	}
 }
+
+
+
 
 // player class + constructor
 class Player {
@@ -154,6 +184,9 @@ const keys = {
 	a: {
 		pressed: false
 	},
+	f: {
+		pressed: false
+	},
 	d: {
 		pressed: false
 	},
@@ -165,11 +198,15 @@ const keys = {
 	},
 	arrowright: {
 		pressed: false
+	},
+	controlright: {
+		pressed: false
 	}
 }
 // speed values
-const PlayerSpeed = 2.5
-const PlayerRotation = 0.015
+var PlayerSpeed = 2.5
+var Player2Speed = 2.5
+const PlayerRotation = 0.020
 
 let gameStarted = false
 
@@ -258,7 +295,7 @@ function animation() {
 	context.font = '30px CustomFont'
 	if (player.targetHits >= 50) {
     context.fillStyle = 'magenta';
-    context.fillText("Savage!", 10, 80);
+    context.fillText("Savage! You win!", 10, 80);
 } else if (player.targetHits >= 25) {
     context.fillStyle = '#FFBF00';
     context.fillText("Stylish!", 10, 80);
@@ -349,24 +386,52 @@ function animation() {
 	player2.velocity.y = 0;
 	
 	Shot.tickTimer -= 1; // should subtract 1 for every 'frame'
+	// boost key (wip)
+	if (keys.f.pressed) {
+		PlayerSpeed = 10;
+	} else {
+		PlayerSpeed = 2.5;
+	}
 	// determines speed when key is pressed
 	if (keys.w.pressed) {
 		player.velocity.x = Math.cos(player.rotation) * PlayerSpeed
 		player.velocity.y = Math.sin(player.rotation) * PlayerSpeed
+		sendPlayerPositionUpdate(player.position);
 	}
 	//rotates right
 	if (keys.d.pressed) player.rotation += PlayerRotation
 	// rotates left
 		else if (keys.a.pressed) player.rotation -= PlayerRotation
 		// player 2
+		// boost key
+		if (keys.controlright.pressed) {
+			Player2Speed = 10;
+		} else {
+			Player2Speed = 2.5;
+		}
 if (keys.arrowup.pressed) {
-	player2.velocity.x = Math.cos(player2.rotation) * PlayerSpeed
-	player2.velocity.y = Math.sin(player2.rotation) * PlayerSpeed
+	player2.velocity.x = Math.cos(player2.rotation) * Player2Speed
+	player2.velocity.y = Math.sin(player2.rotation) * Player2Speed
 }
 if (keys.arrowright.pressed) player2.rotation += PlayerRotation
 else if (keys.arrowleft.pressed) player2.rotation -= PlayerRotation
 }
 
+// Handle incoming messages related to player position updates from the server
+//socket.onmessage = function(event) {
+  //  const message = JSON.parse(event.data);
+    //if (message.type === 'player_position_update') {
+        // Update other player positions based on received data
+      //  const newPosition = message.data;
+        // Update the game state and render players accordingly
+        //updateOtherPlayerPosition(newPosition);
+    //}
+//};
+
+// Update other player positions based on received data
+function updateOtherPlayerPosition(newPosition) {
+    // Update other player positions in the game
+}
 
 window.addEventListener('keydown', (event) => {
 	// switch = cleaner if/else, uses cases. better readability.
@@ -382,6 +447,10 @@ window.addEventListener('keydown', (event) => {
 		case 'KeyD':
 			keys.d.pressed = true
 			console.log('D input');
+			break
+		case 'KeyF':
+			keys.f.pressed = true 
+			console.log('F input');
 			break
 		case 'Space':
 			const ShotSpeedPlayer1 = 3.5
@@ -430,7 +499,11 @@ window.addEventListener('keydown', (event) => {
 			keys.arrowleft.pressed = true
 			console.log('left arrow input')
 		break
-			case 'NumpadEnter':
+		case 'ControlRight':
+			keys.controlright.pressed = true
+			console.log('right control input')
+			break
+			case 'Enter':
 			const ShotSpeedPlayer2 = 3.5
 			const playerWidth2 = 100
 			const playerHeight2 =  100	
@@ -476,7 +549,9 @@ window.addEventListener('keyup', (event) => {
 		case 'KeyD':
 			keys.d.pressed = false
 			break
-			
+		case 'KeyF':
+			keys.f.pressed = false
+			break
 			// player 2 keyup
 		case 'ArrowUp': 
 			keys.arrowup.pressed = false
@@ -487,24 +562,8 @@ window.addEventListener('keyup', (event) => {
 		case 'ArrowLeft': 
 			keys.arrowleft.pressed = false
 			break
+		case 'ControlRight':
+			keys.controlright.pressed = false 
+			break
 	}
 })
-
-// networking! (send help)
-function connectSocket() {
-}
-	// create instance & connect to server
-var socket = new SockJS('/websocket', {
-	transports: ['websocket'] // force websockets only?
-});
-//handler for connection open
-	socket.onopen = function() {
-	console.log('SockJS connection established. ');
-	}
-	// handler for message received
-	socket.onmessage = function(e) {
-		console.log('Message received from server: ', e.data);
-	}
-	socket.onclose = function() {
-		console.log('SockJS connection closed. ')
-	}
